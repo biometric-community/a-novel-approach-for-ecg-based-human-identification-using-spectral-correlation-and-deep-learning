@@ -239,8 +239,9 @@ Database=`{db}`, arch=`{arch}`, classes=`{summary.get("n_classes", "?")}`, folds
 ## Comparison notes
 
 - Paper Fig. 6–8 are **Results** plots; we regenerate the same *types* from our JSON logs with **dev-plot** styling.
-- Gap vs paper Table 5 is expected on smoke data and when CEBSDB/AFDB / full 10 validations are not run.
-- See [DEVIATIONS.md](./DEVIATIONS.md) for D2–D5.
+- Fantasia runs may use `--max-segments` (caf_fft SCF build is costly at full 30 min); keep `n_validations=10` when matching Fig. 6.
+- Gap vs paper Table 5 is expected without Combined-488 / CEBSDB and with segment caps.
+- See [DEVIATIONS.md](./DEVIATIONS.md) for D2–D7.
 
 ## How to regenerate
 

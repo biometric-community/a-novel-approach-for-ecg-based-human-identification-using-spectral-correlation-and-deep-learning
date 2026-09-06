@@ -11,20 +11,20 @@
 
 | Metric | Ours | Paper Table 5 (Arch A Mean All) | Notes |
 |--------|------|----------------------------------|-------|
-| IDR | 0.1200 | 0.956 | **Smoke / incomplete protocol** |
-| FAR | 0.5000 | 0.022 | FAR/FRR mode may differ (D2) |
-| FRR | 0.5000 | 0.001 | |
+| IDR | 0.8825 | 0.956 | Fuller run |
+| FAR | 0.0290 | 0.022 | FAR/FRR mode may differ (D2) |
+| FRR | 0.0290 | 0.001 | |
 
-Database=`__smoke__`, arch=`arch_a`, classes=`8`, folds/validations=`5`.
+Database=`fantasia`, arch=`arch_a`, classes=`40`, folds/validations=`10`.
 
-This report is from a **smoke** run (synthetic or capped protocol). Do not treat metrics as a paper reproduction.
+Numbers are from our local protocol; compare carefully to paper subsets.
 
 ## Experimental setup (ours)
 
 - Lead preference / resample: Lead II-ish -> 360 Hz, 2 s blind segments, max 30 min
-- SCF: `bifrequency` (Eq. 10–11)
-- Train: SGD lr=0.002, epochs=5, batch=16
-- Validations: `n_validations`=5, `n_folds`=5
+- SCF: `caf_fft` (Eq. 10–11)
+- Train: SGD lr=0.002, epochs=15, batch=32
+- Validations: `n_validations`=10, `n_folds`=5
 
 ## Results tables
 
@@ -32,11 +32,16 @@ This report is from a **smoke** run (synthetic or capped protocol). Do not treat
 
 | Fold | IDR | FAR | FRR |
 |------|-----|-----|-----|
-| 0 | 0.1000 | 0.4500 | 0.4500 |
-| 1 | 0.1500 | 0.5500 | 0.5500 |
-| 2 | 0.1000 | 0.5000 | 0.5000 |
-| 3 | 0.1500 | 0.5000 | 0.5000 |
-| 4 | 0.1000 | 0.5000 | 0.5000 |
+| 0 | 0.9375 | 0.0175 | 0.0175 |
+| 1 | 0.9225 | 0.0197 | 0.0200 |
+| 2 | 0.9375 | 0.0225 | 0.0225 |
+| 3 | 0.8850 | 0.0300 | 0.0300 |
+| 4 | 0.8775 | 0.0325 | 0.0325 |
+| 5 | 0.8750 | 0.0300 | 0.0300 |
+| 6 | 0.8225 | 0.0500 | 0.0500 |
+| 7 | 0.7425 | 0.0500 | 0.0500 |
+| 8 | 0.8925 | 0.0225 | 0.0225 |
+| 9 | 0.9325 | 0.0150 | 0.0150 |
 
 ## Figures
 
@@ -61,8 +66,9 @@ This report is from a **smoke** run (synthetic or capped protocol). Do not treat
 ## Comparison notes
 
 - Paper Fig. 6–8 are **Results** plots; we regenerate the same *types* from our JSON logs with **dev-plot** styling.
-- Gap vs paper Table 5 is expected on smoke data and when CEBSDB/AFDB / full 10 validations are not run.
-- See [DEVIATIONS.md](./DEVIATIONS.md) for D2–D5.
+- This Fantasia run used `--max-segments 50` (caf_fft SCF build is costly at full 30 min); protocol kept `n_validations=10`, epochs=15.
+- Gap vs paper Table 5 is expected without Combined-488 / CEBSDB and with segment caps.
+- See [DEVIATIONS.md](./DEVIATIONS.md) for D2–D7.
 
 ## How to regenerate
 

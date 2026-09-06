@@ -22,6 +22,7 @@ def parse_args():
     p.add_argument("--checkpoint", type=str, default="outputs/checkpoints/best.pt")
     p.add_argument("--database", type=str, default=None)
     p.add_argument("--fold", type=int, default=0, help="Which CV fold hold-out to score")
+    p.add_argument("--max-segments", type=int, default=None, help="Cap segments/subject (match train)")
     return p.parse_args()
 
 
@@ -30,6 +31,8 @@ def main():
     cfg = load_config(args.config)
     if args.database:
         cfg.setdefault("data", {})["database"] = args.database
+    if args.max_segments is not None:
+        cfg.setdefault("data", {})["max_segments_per_subject"] = args.max_segments
 
     set_seed(int(cfg.get("train", {}).get("seed", 42)))
     device = get_device()
@@ -37,17 +40,30 @@ def main():
     subjects = load_subjects(cfg)
     X, y, class_names = build_scf_arrays(subjects, cfg)
 
-    skf = StratifiedKFold(
-        n_splits=int(cfg.get("train", {}).get("n_folds", 5)),
-        shuffle=True,
-        random_state=int(cfg.get("train", {}).get("seed", 42)),
-    )
-    splits = list(skf.split(X, y))
+    train_cfg = cfg.get("train", {})
+    seed = int(train_cfg.get("seed", 42))
+    n_validations = train_cfg.get("n_validations")
+    if n_validations is not None:
+        from sklearn.model_selection import StratifiedShuffleSplit
+
+        sss = StratifiedShuffleSplit(
+            n_splits=int(n_validations),
+            train_size=float(train_cfg.get("train_ratio", 0.8)),
+            random_state=seed,
+        )
+        splits = list(sss.split(X, y))
+    else:
+        skf = StratifiedKFold(
+            n_splits=int(train_cfg.get("n_folds", 5)),
+            shuffle=True,
+            random_state=seed,
+        )
+        splits = list(skf.split(X, y))
     fold = int(args.fold) % len(splits)
     _, te = splits[fold]
     test_loader = DataLoader(
         SCFImageDataset(X[te], y[te]),
-        batch_size=int(cfg.get("train", {}).get("batch_size", 32)),
+        batch_size=int(train_cfg.get("batch_size", 32)),
         shuffle=False,
     )
 
