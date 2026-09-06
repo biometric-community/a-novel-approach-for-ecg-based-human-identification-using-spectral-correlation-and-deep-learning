@@ -57,8 +57,10 @@ def spectral_correlation_image(
         scf = np.abs(np.fft.fft(caf, axis=1))
         scf = np.fft.fftshift(scf, axes=(0, 1))
 
-    img = _resize_square(scf.astype(np.float64), out_size)
+    img = _resize_square(np.nan_to_num(scf.astype(np.float64), nan=0.0, posinf=0.0, neginf=0.0), out_size)
     if normalize:
-        m = float(img.max())
+        m = float(np.nanmax(img)) if img.size else 0.0
+        if not np.isfinite(m) or m <= 0.0:
+            return np.zeros((out_size, out_size), dtype=np.float32)
         img = img / (m + 1e-12)
-    return img.astype(np.float32)
+    return np.nan_to_num(img, nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32)

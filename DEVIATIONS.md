@@ -11,6 +11,7 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 | D4 | Conv padding not stated (Fig. 5) | Same padding so spatial size stays 128 until MaxPool | Stable shapes; paper silent on pad |
 | D5 | Nine DBs + Combined 488 | Local PhysioNet trees including AFDB; **CEBSDB** still missing (Combined incomplete) | AFDB enabled in `configs/default.yaml`; CEBSDB remains optional |
 | D6 | Sec. 5.2 five-fold vs Fig. 6 ten validations | Default `train.n_validations=10` (StratifiedShuffleSplit 80/20); `n_folds=5` still available if `n_validations: null` | Aligns with Fig. 6; both modes configurable |
+| D7 | Clean ECG samples assumed | Linear-interpolate sparse WFDB NaN/±inf before z-score; skip non-finite segments/SCF images | Fantasia ECG leads have rare missing samples that otherwise NaN-poison training |
 
 ## Upstream-related
 

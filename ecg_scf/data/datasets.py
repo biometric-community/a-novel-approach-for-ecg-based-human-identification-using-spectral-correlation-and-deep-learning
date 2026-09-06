@@ -100,6 +100,22 @@ def _zscore(sig: np.ndarray) -> np.ndarray:
     return (sig - mu) / sd
 
 
+def _fill_nonfinite(sig: np.ndarray) -> np.ndarray | None:
+    """Linear-interpolate sparse PhysioNet NaNs / ±inf (common in Fantasia ECG)."""
+    x = np.asarray(sig, dtype=np.float64).reshape(-1)
+    if x.size == 0:
+        return None
+    finite = np.isfinite(x)
+    if finite.all():
+        return x
+    if finite.sum() < 8:
+        return None
+    idx = np.arange(x.size)
+    x = x.copy()
+    x[~finite] = np.interp(idx[~finite], idx[finite], x[finite])
+    return x
+
+
 def _read_wfdb_record(stem: Path, lead_prefs: list[str]) -> tuple[np.ndarray, float] | None:
     try:
         import wfdb
@@ -113,6 +129,9 @@ def _read_wfdb_record(stem: Path, lead_prefs: list[str]) -> tuple[np.ndarray, fl
         return None
     fs = float(rec.fs)
     sig = _pick_lead(list(rec.sig_name or []), rec.p_signal, lead_prefs)
+    sig = _fill_nonfinite(sig)
+    if sig is None:
+        return None
     return sig, fs
 
 
@@ -292,12 +311,16 @@ def build_scf_arrays(
     labels: list[int] = []
     for name in class_names:
         for seg in by_subj[name]:
+            if not np.isfinite(seg).all():
+                continue
             img = spectral_correlation_image(
                 seg,
                 out_size=img_size,
                 normalize=normalize,
                 method=scf_method,
             )
+            if not np.isfinite(img).all():
+                continue
             images.append(img[None, ...])  # 1,H,W
             labels.append(name_to_idx[name])
 
