@@ -1,0 +1,11 @@
+outputs/
+.venv/
+upstream/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.pt
+*.pth
+_pdf_extract.txt
+_method_snippets.txt
+.DS_Store

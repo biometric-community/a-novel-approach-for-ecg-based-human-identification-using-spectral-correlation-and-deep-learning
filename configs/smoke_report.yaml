@@ -1,0 +1,56 @@
+# Smoke config for report figures (fast SCF + several validations)
+paper:
+  slug: a-novel-approach-for-ecg-based-human-identification-using-spectral-cor
+  title: "A Novel Approach for ECG-based Human Identification using Spectral Correlation and Deep Learning"
+  doi: "10.1109/TBIOM.2019.2947434"
+
+data:
+  datasets_root: ../../datasets
+  databases: [fantasia]
+  database: __smoke__
+  lead_preference: ["II", "MLII"]
+  target_fs: 360.0
+  segment_sec: 2.0
+  max_minutes: 30.0
+  allow_synthetic: true
+  max_segments_per_subject: 12
+
+model:
+  name: arch_a
+  dropout: 0.3
+  in_channels: 1
+  image_size: 128
+
+scf:
+  method: bifrequency
+  normalize_image: true
+
+train:
+  seed: 42
+  epochs: 5
+  batch_size: 16
+  lr: 0.002
+  optimizer: sgd
+  momentum: 0.9
+  weight_decay: 0.0
+  n_folds: 5
+  n_validations: 5
+  train_ratio: 0.8
+  num_workers: 0
+  max_folds: null
+
+eval:
+  metric: idr
+  cmc_ranks: 10
+  far_frr_mode: eer
+  accept_threshold: 0.5
+
+paths:
+  checkpoint_dir: outputs/checkpoints
+  log_dir: outputs/logs
+  pred_dir: outputs/predictions
+  cache_dir: outputs/cache
+  figure_dir: outputs/figures
+
+report:
+  embed_format: svg

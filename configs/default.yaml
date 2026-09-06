@@ -1,0 +1,76 @@
+paper:
+  slug: a-novel-approach-for-ecg-based-human-identification-using-spectral-cor
+  title: "A Novel Approach for ECG-based Human Identification using Spectral Correlation and Deep Learning"
+  doi: "10.1109/TBIOM.2019.2947434"
+
+source_code:
+  url: null
+  commit: null
+
+data:
+  # Roots relative to this project directory (then repo root)
+  datasets_root: ../../datasets
+  # Paper Table 4 / Sec. 5.1 — only include DBs that exist locally
+  databases:
+    - fantasia
+    - stdb
+    - vfdb
+    - nsrdb
+    - mit-bih
+    - ptb
+    # - cebsdb   # placeholder until downloaded (paper: phase 2, 30 min)
+    # - afdb     # placeholder until downloaded
+  # Single-DB default for quick runs; set to "combined" for multi-DB (≤488)
+  database: fantasia
+  lead_preference: ["II", "MLII", "ii", "lead ii", "ECG1", "ecg"]
+  target_fs: 360.0
+  segment_sec: 2.0
+  max_minutes: 30.0
+  allow_synthetic: true
+  # Cap segments per subject for smoke / memory (null = all)
+  max_segments_per_subject: null
+
+model:
+  name: arch_a  # arch_a | arch_b
+  dropout: 0.3
+  in_channels: 1
+  image_size: 128
+
+scf:
+  # caf_fft = Eq. 10 CAF then Eq. 11 FFT over tau; bifrequency = |X X*| shortcut
+  method: caf_fft
+  normalize_image: true
+
+train:
+  seed: 42
+  epochs: 15
+  batch_size: 32
+  lr: 0.002
+  optimizer: sgd
+  momentum: 0.9
+  weight_decay: 0.0
+  n_folds: 5
+  # Fig. 6: set to 10 for ten stratified 80/20 validations (overrides n_folds)
+  n_validations: 10
+  train_ratio: 0.8
+  num_workers: 0
+  # Limit folds/validations for quick smoke (null = all)
+  max_folds: null
+
+eval:
+  metric: idr
+  cmc_ranks: 10
+  # eer = FAR/FRR at approx EER on genuine/impostor softmax scores; threshold = fixed
+  far_frr_mode: eer
+  accept_threshold: 0.5
+
+paths:
+  checkpoint_dir: outputs/checkpoints
+  log_dir: outputs/logs
+  pred_dir: outputs/predictions
+  cache_dir: outputs/cache
+  figure_dir: outputs/figures
+
+report:
+  title: null
+  embed_format: svg
