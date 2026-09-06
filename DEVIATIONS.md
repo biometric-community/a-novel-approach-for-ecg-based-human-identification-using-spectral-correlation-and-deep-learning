@@ -9,7 +9,7 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 | D2 | FAR / FRR (Sec. 4.5) without operating point | Default `eval.far_frr_mode=eer` on genuine=P(true) vs impostor=P(other) softmax scores; optional fixed `accept_threshold` | Closed-set softmax; threshold underspecified |
 | D3 | SGD lr=0.002, 15 epochs; batch / momentum not stated | `batch_size=32`, `momentum=0.9`, `weight_decay=0` | Common SGD defaults in config |
 | D4 | Conv padding not stated (Fig. 5) | Same padding so spatial size stays 128 until MaxPool | Stable shapes; paper silent on pad |
-| D5 | Nine DBs + Combined 488 | Local PhysioNet trees; CEBSDB/AFDB optional until downloaded | Placeholders; synthetic smoke fallback |
+| D5 | Nine DBs + Combined 488 | Local PhysioNet trees including AFDB; **CEBSDB** still missing (Combined incomplete) | AFDB enabled in `configs/default.yaml`; CEBSDB remains optional |
 | D6 | Sec. 5.2 five-fold vs Fig. 6 ten validations | Default `train.n_validations=10` (StratifiedShuffleSplit 80/20); `n_folds=5` still available if `n_validations: null` | Aligns with Fig. 6; both modes configurable |
 
 ## Upstream-related
@@ -23,7 +23,8 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 - Author code: not released — see SOURCE_CODE.md
 - Pretrained weights: not released
 - Private data: n/a (public PhysioNet)
-- CEBSDB / AFDB: not on disk yet (public; download scripts under `projects/datasets/`)
+- CEBSDB: not on disk yet (public PhysioNet; download when available)
+- AFDB: on disk under `projects/datasets/afdb/` (enabled in default config)
 
 ## Hyperparameters guessed
 

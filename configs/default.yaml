@@ -18,15 +18,15 @@ data:
     - nsrdb
     - mit-bih
     - ptb
-    # - cebsdb   # placeholder until downloaded (paper: phase 2, 30 min)
-    # - afdb     # placeholder until downloaded
+    - afdb
+    # - cebsdb   # still missing locally (paper: phase 2, 30 min)
   # Single-DB default for quick runs; set to "combined" for multi-DB (≤488)
   database: fantasia
   lead_preference: ["II", "MLII", "ii", "lead ii", "ECG1", "ecg"]
   target_fs: 360.0
   segment_sec: 2.0
   max_minutes: 30.0
-  allow_synthetic: true
+  allow_synthetic: false
   # Cap segments per subject for smoke / memory (null = all)
   max_segments_per_subject: null
 

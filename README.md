@@ -11,14 +11,14 @@ Blind **2 s** ECG segments (no fiducials / no denoising) → **spectral correlat
 ## Setup
 
 ```bash
-# Git Bash / WSL / Linux / macOS — from repo root
-bash projects/papers/A-Novel-Approach-for-ECG-based-Human-Identification-using-Spectral-Correlation-and-Deep-Learning/scripts/setup_env.sh
+# Git Bash / WSL / Linux / macOS — from monorepo root
+bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor/scripts/setup_env.sh
 ```
 
 Windows PowerShell (manual):
 
 ```powershell
-cd projects/papers/A-Novel-Approach-for-ECG-based-Human-Identification-using-Spectral-Correlation-and-Deep-Learning
+cd projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -35,7 +35,8 @@ $env:PYTHONPATH = (Get-Location).Path
 | NSRDB | `projects/datasets/nsrdb/` | on disk |
 | MITDB | `projects/datasets/mit-bih/` | on disk |
 | PTBDB | `projects/datasets/ptb/` | on disk |
-| CEBSDB / AFDB | `projects/datasets/cebsdb/`, `afdb/` | download scripts available |
+| AFDB | `projects/datasets/afdb/` | on disk |
+| CEBSDB | `projects/datasets/cebsdb/` | missing — see DEVIATIONS.md |
 | Combined | set `data.database: combined` | uses `data.databases` list |
 
 Edit `configs/default.yaml` → `data.database` (default `fantasia`). If a DB is missing and `allow_synthetic: true`, a small synthetic cohort is used so CLIs still run.
@@ -45,17 +46,17 @@ Lead II preferred; signals resampled to **360 Hz**, max **30 min**/record (Sec. 
 ## Train
 
 ```bash
-bash projects/papers/A-Novel-Approach-for-ECG-based-Human-Identification-using-Spectral-Correlation-and-Deep-Learning/scripts/train.sh
+bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor/scripts/train.sh
 # Faster SCF estimate for smoke (optional):
 # edit configs/default.yaml → scf.method: bifrequency
 # Arch B, single fold smoke:
-bash .../scripts/train.sh --arch arch_b --folds 1 --max-segments 20 --epochs 2
+bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor/scripts/train.sh --arch arch_b --folds 1 --max-segments 20 --epochs 2
 ```
 
 ## Evaluate
 
 ```bash
-bash .../scripts/eval.sh --checkpoint outputs/checkpoints/best.pt
+bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor/scripts/eval.sh --checkpoint outputs/checkpoints/best.pt
 ```
 
 ## Report (figures + REPORT.md)
@@ -63,7 +64,7 @@ bash .../scripts/eval.sh --checkpoint outputs/checkpoints/best.pt
 Uses **dev-plot** (`ecg_scf/plot_style.py`). Writes SVGs under `outputs/figures/` and refreshes [REPORT.md](./REPORT.md) (CMC ≈ Fig. 8, metric bars ≈ Fig. 7, IDR boxplot ≈ Fig. 6).
 
 ```bash
-bash .../scripts/report.sh
+bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor/scripts/report.sh
 # PowerShell:
 $env:PYTHONPATH = (Get-Location).Path
 python -m ecg_scf.report --config configs/default.yaml
@@ -72,7 +73,7 @@ python -m ecg_scf.report --config configs/default.yaml
 ## Predict
 
 ```bash
-bash .../scripts/predict.sh --input /path/to/record_stem_or_dir --checkpoint outputs/checkpoints/best.pt
+bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-spectral-cor/scripts/predict.sh --input /path/to/record_stem_or_dir --checkpoint outputs/checkpoints/best.pt
 ```
 
 ## Outputs
