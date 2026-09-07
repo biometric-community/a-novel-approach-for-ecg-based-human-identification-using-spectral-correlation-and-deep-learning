@@ -19,8 +19,8 @@ data:
     - mit-bih
     - ptb
     - afdb
-    # - cebsdb   # still missing locally (paper: phase 2, 30 min)
-  # Single-DB default for quick runs; set to "combined" for multi-DB (≤488)
+    - cebsdb   # music-phase mNNN, lead II, first 30 min (paper Table 4)
+  # Single-DB default for quick runs; set to "combined" for multi-DB (~485–488)
   database: fantasia
   lead_preference: ["II", "MLII", "ii", "lead ii", "ECG1", "ecg"]
   target_fs: 360.0

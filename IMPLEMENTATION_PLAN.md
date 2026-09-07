@@ -24,8 +24,8 @@
 | NSRDB | `projects/datasets/nsrdb/` | on disk |
 | MITDB | `projects/datasets/mit-bih/` | on disk |
 | PTBDB | `projects/datasets/ptb/` | on disk |
-| CEBSDB | `projects/datasets/cebsdb/` | placeholder |
-| AFDB | `projects/datasets/afdb/` | placeholder |
+| CEBSDB | `projects/datasets/cebsdb/` | on disk (music phase) |
+| AFDB | `projects/datasets/afdb/` | on disk (~20 signal records) |
 | Combined | union of available | 488 when all present |
 
 Lead II / first usable channel; max **30 min** per record (paper Sec. 5.1).

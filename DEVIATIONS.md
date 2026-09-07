@@ -9,7 +9,7 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 | D2 | FAR / FRR (Sec. 4.5) without operating point | Default `eval.far_frr_mode=eer` on genuine=P(true) vs impostor=P(other) softmax scores; optional fixed `accept_threshold` | Closed-set softmax; threshold underspecified |
 | D3 | SGD lr=0.002, 15 epochs; batch / momentum not stated | `batch_size=32`, `momentum=0.9`, `weight_decay=0` | Common SGD defaults in config |
 | D4 | Conv padding not stated (Fig. 5) | Same padding so spatial size stays 128 until MaxPool | Stable shapes; paper silent on pad |
-| D5 | Nine DBs + Combined 488 | Local PhysioNet trees including AFDB; **CEBSDB** still missing (Combined incomplete) | AFDB enabled in `configs/default.yaml`; CEBSDB remains optional |
+| D5 | Nine DBs + Combined 488 | Local trees: CEBSDB+AFDB+… → **~485** subjects (paper 488). AFDB on disk has **20** signal records (paper 23; 2 annotation-only + possible gaps) | CEBSDB music-phase `mNNN` merged by volunteer id; Combined subject count short by AFDB completeness |
 | D6 | Sec. 5.2 five-fold vs Fig. 6 ten validations | Default `train.n_validations=10` (StratifiedShuffleSplit 80/20); `n_folds=5` still available if `n_validations: null` | Aligns with Fig. 6; both modes configurable |
 | D7 | Clean ECG samples assumed | Linear-interpolate sparse WFDB NaN/±inf before z-score; skip non-finite segments/SCF images | Fantasia ECG leads have rare missing samples that otherwise NaN-poison training |
 
@@ -24,8 +24,12 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 - Author code: not released — see SOURCE_CODE.md
 - Pretrained weights: not released
 - Private data: n/a (public PhysioNet)
-- CEBSDB: not on disk yet (public PhysioNet; download when available)
-- AFDB: on disk under `projects/datasets/afdb/` (enabled in default config)
+- CEBSDB: on disk under `projects/datasets/cebsdb/data/` (enabled; music-phase `mNNN` preferred; submodule `biometric-community/CEBSDB-Combined-ECG-Breathing-Seismocardiograms`)
+- AFDB: on disk under `projects/datasets/afdb/` (enabled; ~20 signal subjects vs paper 23 → Combined **485** not 488)
+
+## Segment caps (runtime)
+
+- Combined / CEBSDB train used `--max-segments 30` (SCF `caf_fft` cost); Fantasia smoke used ms50. Full 30 min/subject without cap is supported via config `max_segments_per_subject: null`.
 
 ## Hyperparameters guessed
 
@@ -44,6 +48,6 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 ## Not implemented (out of scope unless requested)
 
 - Exact timing microbenchmark (~54 ms)
-- Full Combined-488 when CEBSDB/AFDB missing
+- Exact Combined-488 headcount until AFDB matches paper’s 23 signal subjects
 - Literature baseline re-runs (Zhang HeartID, etc.)
-- CEBSDB “phase 2” selection detail beyond first 30 min of lead II
+- CEBSDB basal/post phases (we prefer music-phase `mNNN` per Table 4 duration)

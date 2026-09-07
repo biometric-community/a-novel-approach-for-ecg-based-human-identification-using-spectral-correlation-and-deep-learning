@@ -36,10 +36,10 @@ $env:PYTHONPATH = (Get-Location).Path
 | MITDB | `projects/datasets/mit-bih/` | on disk |
 | PTBDB | `projects/datasets/ptb/` | on disk |
 | AFDB | `projects/datasets/afdb/` | on disk |
-| CEBSDB | `projects/datasets/cebsdb/` | missing — see DEVIATIONS.md |
-| Combined | set `data.database: combined` | uses `data.databases` list |
+| CEBSDB | `projects/datasets/cebsdb/data/` | on disk (music phase) |
+| Combined | set `data.database: combined` | union of `data.databases` → **~485** subjects locally (paper 488; AFDB shortfall, D5) |
 
-Edit `configs/default.yaml` → `data.database` (default `fantasia`). If a DB is missing and `allow_synthetic: true`, a small synthetic cohort is used so CLIs still run.
+Edit `configs/default.yaml` → `data.database` (default `fantasia`). For Combined, CEBSDB is enabled (music-phase). If a DB is missing and `allow_synthetic: true`, a small synthetic cohort is used so CLIs still run. Optional `--max-segments N` caps SCF build time.
 
 Lead II preferred; signals resampled to **360 Hz**, max **30 min**/record (Sec. 5.1).
 
@@ -78,11 +78,11 @@ bash projects/papers/a-novel-approach-for-ecg-based-human-identification-using-s
 
 ## Outputs
 
-- Checkpoints: `outputs/checkpoints/`
-- Logs: `outputs/logs/`
-- Figures: `outputs/figures/` (SVG, dev-plot)
-- Predictions: `outputs/predictions/`
-- Experiment write-up: [REPORT.md](./REPORT.md)
+- Primary write-up: [REPORT.md](./REPORT.md) (Combined by default after report from `logs_combined`)
+- Combined: `outputs/logs_combined/`, `outputs/figures_combined/`, `outputs/checkpoints_combined/`
+- CEBSDB: `outputs/logs_cebsdb/`, `outputs/figures_cebsdb/`
+- Fantasia (capped): `outputs/logs/train_fantasia_ms50.log`, `outputs/figures/`
+- Default train dirs: `outputs/checkpoints/`, `outputs/logs/`, `outputs/predictions/`
 
 ## Source code
 

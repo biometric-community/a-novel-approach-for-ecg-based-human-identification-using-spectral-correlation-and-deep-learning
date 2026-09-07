@@ -147,7 +147,17 @@ def _subject_id_for(catalog: str, record_stem: str, hea: Path) -> str:
     if catalog == "mit-bih":
         sid = MITDB_SUBJECT_MAP.get(record_stem, record_stem)
         return f"{catalog}:{sid}"
+    # CEBSDB: bNNN / mNNN / pNNN → one subject per volunteer NNN (paper: 20 subjects)
+    if catalog == "cebsdb":
+        digits = "".join(ch for ch in record_stem if ch.isdigit())
+        return f"{catalog}:{digits or record_stem}"
     return f"{catalog}:{record_stem}"
+
+
+def _filter_cebsdb_heas(heas: list[Path]) -> list[Path]:
+    """Prefer music-phase mNNN (~47–50 min, paper Table 4); fall back to all."""
+    music = [h for h in heas if h.stem.lower().startswith("m") and h.stem[1:].isdigit()]
+    return music if music else heas
 
 
 def iter_database_records(db_id: str, cfg: dict) -> Iterator[SubjectRecord]:
@@ -164,6 +174,8 @@ def iter_database_records(db_id: str, cfg: dict) -> Iterator[SubjectRecord]:
     heas = _find_hea_files(db_dir)
     if not heas:
         return
+    if catalog == "cebsdb":
+        heas = _filter_cebsdb_heas(heas)
 
     # Accumulate by subject then concatenate (MITDB 201/202, multi-record PTB)
     buckets: dict[str, list[np.ndarray]] = {}

@@ -3,7 +3,7 @@
 - **Paper:** `a-novel-approach-for-ecg-based-human-identification-using-spectral-cor`
 - **Project:** ECG spectral-correlation identification
 - **DOI:** 10.1109/TBIOM.2019.2947434
-- **Generated from:** `outputs/logs/train_summary.json`
+- **Generated from:** `outputs/logs_combined/train_summary.json`
 - **Fidelity:** see [FIDELITY_AUDIT.md](./FIDELITY_AUDIT.md) (method match; not accuracy claims)
 - **Plot style:** [dev-plot](../../../.cursor/skills/dev-plot/SKILL.md)
 
@@ -11,11 +11,11 @@
 
 | Metric | Ours | Paper Table 5 (Arch A Mean All) | Notes |
 |--------|------|----------------------------------|-------|
-| IDR | 0.8825 | 0.956 | Fuller run |
-| FAR | 0.0290 | 0.022 | FAR/FRR mode may differ (D2) |
-| FRR | 0.0290 | 0.001 | |
+| IDR | 0.9038 | 0.956 | Fuller run |
+| FAR | 0.0101 | 0.022 | FAR/FRR mode may differ (D2) |
+| FRR | 0.0101 | 0.001 | |
 
-Database=`fantasia`, arch=`arch_a`, classes=`40`, folds/validations=`10`.
+Database=`combined`, arch=`arch_a`, classes=`485`, folds/validations=`10`.
 
 Numbers are from our local protocol; compare carefully to paper subsets.
 
@@ -32,59 +32,62 @@ Numbers are from our local protocol; compare carefully to paper subsets.
 
 | Fold | IDR | FAR | FRR |
 |------|-----|-----|-----|
-| 0 | 0.9375 | 0.0175 | 0.0175 |
-| 1 | 0.9225 | 0.0197 | 0.0200 |
-| 2 | 0.9375 | 0.0225 | 0.0225 |
-| 3 | 0.8850 | 0.0300 | 0.0300 |
-| 4 | 0.8775 | 0.0325 | 0.0325 |
-| 5 | 0.8750 | 0.0300 | 0.0300 |
-| 6 | 0.8225 | 0.0500 | 0.0500 |
-| 7 | 0.7425 | 0.0500 | 0.0500 |
-| 8 | 0.8925 | 0.0225 | 0.0225 |
-| 9 | 0.9325 | 0.0150 | 0.0150 |
+| 0 | 0.9078 | 0.0074 | 0.0074 |
+| 1 | 0.9231 | 0.0092 | 0.0092 |
+| 2 | 0.9004 | 0.0088 | 0.0089 |
+| 3 | 0.8919 | 0.0103 | 0.0103 |
+| 4 | 0.9100 | 0.0100 | 0.0099 |
+| 5 | 0.8859 | 0.0107 | 0.0106 |
+| 6 | 0.9050 | 0.0106 | 0.0106 |
+| 7 | 0.9135 | 0.0103 | 0.0103 |
+| 8 | 0.8880 | 0.0121 | 0.0121 |
+| 9 | 0.9121 | 0.0113 | 0.0113 |
 
 ## Figures
 
 ### Figure: `cmc`
 
-![CMC curve (paper Fig. 8 style). Ours from logged folds.](outputs/figures/cmc.svg)
+![CMC curve (paper Fig. 8 style). Ours from logged folds.](outputs/figures_combined/cmc.svg)
 
 *CMC curve (paper Fig. 8 style). Ours from logged folds.*
 
 ### Figure: `metrics_bars`
 
-![IDR / FAR / FRR bars (paper Fig. 7 style). Paper bars = Table 5 Mean All Arch A.](outputs/figures/metrics_bars.svg)
+![IDR / FAR / FRR bars (paper Fig. 7 style). Paper bars = Table 5 Mean All Arch A.](outputs/figures_combined/metrics_bars.svg)
 
 *IDR / FAR / FRR bars (paper Fig. 7 style). Paper bars = Table 5 Mean All Arch A.*
 
 ### Figure: `idr_boxplot`
 
-![IDR boxplot across validations (paper Fig. 6 style).](outputs/figures/idr_boxplot.svg)
+![IDR boxplot across validations (paper Fig. 6 style).](outputs/figures_combined/idr_boxplot.svg)
 
 *IDR boxplot across validations (paper Fig. 6 style).*
 
 ## Comparison notes
 
+- Primary reported run is usually **Combined** (~485 classes vs paper 488; see D5 / AFDB).
+- Sibling logs: `outputs/logs_cebsdb/` (CEBSDB), `outputs/logs/train_fantasia_ms50.log` (Fantasia capped), `outputs/logs_combined/` (Combined).
 - Paper Fig. 6–8 are **Results** plots; we regenerate the same *types* from our JSON logs with **dev-plot** styling.
-- This Fantasia run used `--max-segments 50` (caf_fft SCF build is costly at full 30 min); protocol kept `n_validations=10`, epochs=15.
-- Gap vs paper Table 5 is expected without Combined-488 / CEBSDB and with segment caps.
+- `--max-segments` caps trade coverage for SCF build time; keep `n_validations=10` when matching Fig. 6.
+- Gap vs paper Table 5 may remain with subject shortfall, segment caps, and FAR/FRR mode D2.
 - See [DEVIATIONS.md](./DEVIATIONS.md) for D2–D7.
 
 ## How to regenerate
 
 ```bash
 # from this project directory
-$env:PYTHONPATH = (Get-Location).Path   # PowerShell
-python -m ecg_scf.train --database fantasia --max-segments 30   # or full protocol
-python -m ecg_scf.report --config configs/default.yaml
-# or: bash scripts/report.sh
+source .venv/bin/activate
+export PYTHONPATH=.
+python -m ecg_scf.report --config configs/default.yaml \
+  --logs outputs/logs_combined --figdir outputs/figures_combined --summary train_summary.json
 ```
 
 ## Artifacts
 
 | Path | Role |
 |------|------|
-| `outputs/figures/*.svg` | Result figures |
-| `outputs/logs/train_summary.json` | Metrics |
+| `outputs/figures_combined/*.svg` | Combined figures (when using logs_combined) |
+| `outputs/logs_combined/train_summary.json` | Combined metrics |
+| `outputs/logs_cebsdb/` | CEBSDB run |
 | `FIDELITY_AUDIT.md` | Method fidelity |
 | `DEVIATIONS.md` | Intentional gaps |

@@ -238,27 +238,30 @@ Database=`{db}`, arch=`{arch}`, classes=`{summary.get("n_classes", "?")}`, folds
     body += """
 ## Comparison notes
 
+- Primary reported run is usually **Combined** (~485 classes vs paper 488; see D5 / AFDB).
+- Sibling logs: `outputs/logs_cebsdb/` (CEBSDB), `outputs/logs/train_fantasia_ms50.log` (Fantasia capped), `outputs/logs_combined/` (Combined).
 - Paper Fig. 6–8 are **Results** plots; we regenerate the same *types* from our JSON logs with **dev-plot** styling.
-- Fantasia runs may use `--max-segments` (caf_fft SCF build is costly at full 30 min); keep `n_validations=10` when matching Fig. 6.
-- Gap vs paper Table 5 is expected without Combined-488 / CEBSDB and with segment caps.
+- `--max-segments` caps trade coverage for SCF build time; keep `n_validations=10` when matching Fig. 6.
+- Gap vs paper Table 5 may remain with subject shortfall, segment caps, and FAR/FRR mode D2.
 - See [DEVIATIONS.md](./DEVIATIONS.md) for D2–D7.
 
 ## How to regenerate
 
 ```bash
 # from this project directory
-$env:PYTHONPATH = (Get-Location).Path   # PowerShell
-python -m ecg_scf.train --database fantasia --max-segments 30   # or full protocol
-python -m ecg_scf.report --config configs/default.yaml
-# or: bash scripts/report.sh
+source .venv/bin/activate
+export PYTHONPATH=.
+python -m ecg_scf.report --config configs/default.yaml \\
+  --logs outputs/logs_combined --figdir outputs/figures_combined --summary train_summary.json
 ```
 
 ## Artifacts
 
 | Path | Role |
 |------|------|
-| `outputs/figures/*.svg` | Result figures |
-| `outputs/logs/train_summary.json` | Metrics |
+| `outputs/figures_combined/*.svg` | Combined figures (when using logs_combined) |
+| `outputs/logs_combined/train_summary.json` | Combined metrics |
+| `outputs/logs_cebsdb/` | CEBSDB run |
 | `FIDELITY_AUDIT.md` | Method fidelity |
 | `DEVIATIONS.md` | Intentional gaps |
 """
