@@ -47,6 +47,7 @@ def train_one_epoch(
     optimizer: torch.optim.Optimizer,
     criterion: nn.Module,
     device: torch.device,
+    grad_clip: float | None = 1.0,
 ) -> float:
     model.train()
     total = 0.0
@@ -58,6 +59,8 @@ def train_one_epoch(
         logits = model(x)
         loss = criterion(logits, y)
         loss.backward()
+        if grad_clip is not None and grad_clip > 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         optimizer.step()
         total += float(loss.item()) * y.size(0)
         n += y.size(0)

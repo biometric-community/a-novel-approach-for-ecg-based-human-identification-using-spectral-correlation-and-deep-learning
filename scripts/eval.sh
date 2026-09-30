@@ -2,5 +2,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+PROJECT_ROOT="$ROOT"
+# shellcheck source=/dev/null
+source "$ROOT/../../../.cursor/skills/_shared/project_env.sh"
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
-python -m ecg_scf.eval --config configs/default.yaml "$@"
+"$PY" -m ecg_scf.eval --config configs/default.yaml "$@"

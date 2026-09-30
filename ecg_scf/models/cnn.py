@@ -64,7 +64,9 @@ class SpectralCNN(nn.Module):
             flat = int(h.numel())
 
         # Fig. 5: MaxPool → Dropout → FC → Softmax (single dropout)
+        # ReLU after FC hidden (standard; paper silent — stabilizes training vs dead folds)
         self.fc = nn.Linear(flat, fc_dim)
+        self.fc_act = nn.ReLU(inplace=True)
         self.classifier = nn.Linear(fc_dim, num_classes)
         self.fc_dim = fc_dim
         self.last_ch = last_ch
@@ -74,7 +76,7 @@ class SpectralCNN(nn.Module):
         h = self.pool(h)
         h = torch.flatten(h, 1)
         h = self.dropout(h)
-        h = self.fc(h)
+        h = self.fc_act(self.fc(h))
         return self.classifier(h)
 
 

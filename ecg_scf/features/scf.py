@@ -46,18 +46,26 @@ def spectral_correlation_image(
         scf = np.abs(np.outer(X, np.conj(X)))
         scf = np.fft.fftshift(scf)
     else:
-        # Eq. 10 (discrete): for each lag τ, CAF(α) = FFT_t[ x(t) x(t−τ) ] / N
-        # (real ECG; conjugate omitted). α bins ↔ FFT frequency bins.
-        max_lag = n
-        caf = np.empty((n, max_lag), dtype=np.complex128)
-        for tau in range(max_lag):
-            prod = x * np.roll(x, tau)
-            caf[:, tau] = np.fft.fft(prod) / n
-        # Eq. 11: SCF(α, f) via Fourier transform of CAF over τ
-        scf = np.abs(np.fft.fft(caf, axis=1))
-        scf = np.fft.fftshift(scf, axes=(0, 1))
+        # Eq. 10: CAF(α,τ) = FFT_t[ x(t) x(t−τ) ] / N
+        # Eq. 11: SCF = FFT_τ[ CAF ]
+        # Vectorized for typical 2 s @ 360 Hz (n≈720); loop for long n.
+        if n <= 2048:
+            idx = (np.arange(n)[None, :] - np.arange(n)[:, None]) % n
+            prod = x[idx] * x[None, :]  # (τ, t)
+            caf = (np.fft.fft(prod, axis=1) / n).T  # (α, τ)
+            scf = np.abs(np.fft.fft(caf, axis=1))
+            scf = np.fft.fftshift(scf, axes=(0, 1))
+        else:
+            caf = np.empty((n, n), dtype=np.complex128)
+            for tau in range(n):
+                caf[:, tau] = np.fft.fft(x * np.roll(x, tau)) / n
+            scf = np.abs(np.fft.fft(caf, axis=1))
+            scf = np.fft.fftshift(scf, axes=(0, 1))
 
-    img = _resize_square(np.nan_to_num(scf.astype(np.float64), nan=0.0, posinf=0.0, neginf=0.0), out_size)
+    img = _resize_square(
+        np.nan_to_num(scf.astype(np.float64), nan=0.0, posinf=0.0, neginf=0.0),
+        out_size,
+    )
     if normalize:
         m = float(np.nanmax(img)) if img.size else 0.0
         if not np.isfinite(m) or m <= 0.0:

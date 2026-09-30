@@ -1,0 +1,70 @@
+data:
+  allow_synthetic: false
+  database: combined
+  databases:
+  - fantasia
+  - stdb
+  - vfdb
+  - nsrdb
+  - mit-bih
+  - ptb
+  - afdb
+  - cebsdb
+  datasets_root: ../../datasets
+  lead_preference:
+  - II
+  - MLII
+  - ii
+  - lead ii
+  - ECG1
+  - ecg
+  max_minutes: 30.0
+  max_segments_per_subject: null
+  scf_cache: true
+  scf_workers: 8
+  segment_sec: 2.0
+  target_fs: 360.0
+eval:
+  accept_threshold: 0.5
+  cmc_ranks: 10
+  far_frr_mode: eer
+  metric: idr
+model:
+  dropout: 0.3
+  image_size: 128
+  in_channels: 1
+  name: arch_a
+paper:
+  doi: 10.1109/TBIOM.2019.2947434
+  slug: a-novel-approach-for-ecg-based-human-identification-using-spectral-cor
+  title: A Novel Approach for ECG-based Human Identification using Spectral Correlation
+    and Deep Learning
+paths:
+  cache_dir: outputs/cache
+  checkpoint_dir: outputs/checkpoints_combined_full
+  figure_dir: outputs/figures_combined_full
+  log_dir: outputs/logs_combined_full
+  pred_dir: outputs/predictions
+report:
+  embed_format: svg
+  title: null
+scf:
+  method: caf_fft
+  normalize_image: true
+source_code:
+  commit: null
+  url: null
+train:
+  batch_size: 32
+  epochs: 15
+  grad_clip: 1.0
+  lr: 0.002
+  max_folds: null
+  momentum: 0.9
+  n_folds: 5
+  n_validations: 10
+  num_workers: 0
+  optimizer: sgd
+  seed: 42
+  train_ratio: 0.8
+  weight_decay: 0.0

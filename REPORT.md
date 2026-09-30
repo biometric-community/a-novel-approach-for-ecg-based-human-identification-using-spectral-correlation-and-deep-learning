@@ -3,7 +3,7 @@
 - **Paper:** `a-novel-approach-for-ecg-based-human-identification-using-spectral-cor`
 - **Project:** ECG spectral-correlation identification
 - **DOI:** 10.1109/TBIOM.2019.2947434
-- **Generated from:** `outputs/logs_combined/train_summary.json`
+- **Generated from:** `outputs/logs_cebsdb_full/train_summary.json`
 - **Fidelity:** see [FIDELITY_AUDIT.md](./FIDELITY_AUDIT.md) (method match; not accuracy claims)
 - **Plot style:** [dev-plot](../../../.cursor/skills/dev-plot/SKILL.md)
 
@@ -11,11 +11,11 @@
 
 | Metric | Ours | Paper Table 5 (Arch A Mean All) | Notes |
 |--------|------|----------------------------------|-------|
-| IDR | 0.9038 | 0.956 | Fuller run |
-| FAR | 0.0101 | 0.022 | FAR/FRR mode may differ (D2) |
-| FRR | 0.0101 | 0.001 | |
+| IDR | 0.9875 | 0.956 | Fuller run |
+| FAR | 0.0034 | 0.022 | FAR/FRR mode may differ (D2) |
+| FRR | 0.0034 | 0.001 | |
 
-Database=`combined`, arch=`arch_a`, classes=`485`, folds/validations=`10`.
+Database=`cebsdb`, arch=`arch_a`, classes=`20`, folds/validations=`10`.
 
 Numbers are from our local protocol; compare carefully to paper subsets.
 
@@ -32,34 +32,34 @@ Numbers are from our local protocol; compare carefully to paper subsets.
 
 | Fold | IDR | FAR | FRR |
 |------|-----|-----|-----|
-| 0 | 0.9078 | 0.0074 | 0.0074 |
-| 1 | 0.9231 | 0.0092 | 0.0092 |
-| 2 | 0.9004 | 0.0088 | 0.0089 |
-| 3 | 0.8919 | 0.0103 | 0.0103 |
-| 4 | 0.9100 | 0.0100 | 0.0099 |
-| 5 | 0.8859 | 0.0107 | 0.0106 |
-| 6 | 0.9050 | 0.0106 | 0.0106 |
-| 7 | 0.9135 | 0.0103 | 0.0103 |
-| 8 | 0.8880 | 0.0121 | 0.0121 |
-| 9 | 0.9121 | 0.0113 | 0.0113 |
+| 0 | 0.9889 | 0.0029 | 0.0028 |
+| 1 | 0.9894 | 0.0031 | 0.0031 |
+| 2 | 0.9856 | 0.0039 | 0.0039 |
+| 3 | 0.9872 | 0.0039 | 0.0039 |
+| 4 | 0.9869 | 0.0042 | 0.0042 |
+| 5 | 0.9861 | 0.0036 | 0.0036 |
+| 6 | 0.9914 | 0.0033 | 0.0033 |
+| 7 | 0.9858 | 0.0033 | 0.0033 |
+| 8 | 0.9881 | 0.0026 | 0.0025 |
+| 9 | 0.9858 | 0.0035 | 0.0033 |
 
 ## Figures
 
 ### Figure: `cmc`
 
-![CMC curve (paper Fig. 8 style). Ours from logged folds.](outputs/figures_combined/cmc.svg)
+![CMC curve (paper Fig. 8 style). Ours from logged folds.](outputs/figures_cebsdb_full/cmc.svg)
 
 *CMC curve (paper Fig. 8 style). Ours from logged folds.*
 
 ### Figure: `metrics_bars`
 
-![IDR / FAR / FRR bars (paper Fig. 7 style). Paper bars = Table 5 Mean All Arch A.](outputs/figures_combined/metrics_bars.svg)
+![IDR / FAR / FRR bars (paper Fig. 7 style). Paper bars = Table 5 Mean All Arch A.](outputs/figures_cebsdb_full/metrics_bars.svg)
 
 *IDR / FAR / FRR bars (paper Fig. 7 style). Paper bars = Table 5 Mean All Arch A.*
 
 ### Figure: `idr_boxplot`
 
-![IDR boxplot across validations (paper Fig. 6 style).](outputs/figures_combined/idr_boxplot.svg)
+![IDR boxplot across validations (paper Fig. 6 style).](outputs/figures_cebsdb_full/idr_boxplot.svg)
 
 *IDR boxplot across validations (paper Fig. 6 style).*
 

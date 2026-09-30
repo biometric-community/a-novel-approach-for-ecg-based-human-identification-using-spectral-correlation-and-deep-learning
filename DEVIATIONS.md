@@ -6,12 +6,14 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 | ID | Paper detail | Our choice | Reason |
 |----|--------------|------------|--------|
 | D1 | SCF via CAF (Eq. 10) then Fourier in τ (Eq. 11); FAM/smoothing window not named | Default `scf.method=caf_fft`: discrete CAF via FFT per lag τ, then FFT over τ; magnitude + resize 128×128. Optional `bifrequency` shortcut | Matches Eq. 10→11 structure; no author FAM params |
-| D2 | FAR / FRR (Sec. 4.5) without operating point | Default `eval.far_frr_mode=eer` on genuine=P(true) vs impostor=P(other) softmax scores; optional fixed `accept_threshold` | Closed-set softmax; threshold underspecified |
+| D2 | FAR / FRR (Sec. 4.5) without operating point | Default `eval.far_frr_mode=eer` on genuine=P(true) vs impostor=P(other); EER via vectorized impostors + quantile threshold grid (`n_thresholds=513`), not all unique scores; optional fixed `accept_threshold` | Closed-set softmax; threshold underspecified; full unique-threshold sweep is intractable on Combined-488 (~20M impostor scores) |
 | D3 | SGD lr=0.002, 15 epochs; batch / momentum not stated | `batch_size=32`, `momentum=0.9`, `weight_decay=0` | Common SGD defaults in config |
 | D4 | Conv padding not stated (Fig. 5) | Same padding so spatial size stays 128 until MaxPool | Stable shapes; paper silent on pad |
-| D5 | Nine DBs + Combined 488 | Local trees: CEBSDB+AFDB+… → **~485** subjects (paper 488). AFDB on disk has **20** signal records (paper 23; 2 annotation-only + possible gaps) | CEBSDB music-phase `mNNN` merged by volunteer id; Combined subject count short by AFDB completeness |
+| D5 | Nine DBs + Combined 488 | Local trees with CEBSDB + **AFDB 23** → Combined **488** | AFDB completed (08378/08405/08455); annotation-only 00735/03665 excluded |
 | D6 | Sec. 5.2 five-fold vs Fig. 6 ten validations | Default `train.n_validations=10` (StratifiedShuffleSplit 80/20); `n_folds=5` still available if `n_validations: null` | Aligns with Fig. 6; both modes configurable |
 | D7 | Clean ECG samples assumed | Linear-interpolate sparse WFDB NaN/±inf before z-score; skip non-finite segments/SCF images | Fantasia ECG leads have rare missing samples that otherwise NaN-poison training |
+| D8 | FC → Softmax (Fig. 5); ReLU after FC not stated | ReLU after FC hidden + `grad_clip=1.0` | Stabilizes SGD; avoids rare dead folds (uniform softmax / IDR≈1/#classes) |
+| D9 | Full-length segments within Table 4 durations | Default `max_segments_per_subject: null` (all 2 s windows in first `max_minutes=30`); optional CLI `--max-segments` for smoke | Prior low IDR runs used caps of 30–50 |
 
 ## Upstream-related
 
@@ -25,11 +27,13 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 - Pretrained weights: not released
 - Private data: n/a (public PhysioNet)
 - CEBSDB: on disk under `projects/datasets/cebsdb/data/` (enabled; music-phase `mNNN` preferred; submodule `biometric-community/CEBSDB-Combined-ECG-Breathing-Seismocardiograms`)
-- AFDB: on disk under `projects/datasets/afdb/` (enabled; ~20 signal subjects vs paper 23 → Combined **485** not 488)
+- AFDB: on disk under `projects/datasets/afdb/` (**23** signal subjects; matches paper Table 4)
 
-## Segment caps (runtime)
+## Segment protocol
 
-- Combined / CEBSDB train used `--max-segments 30` (SCF `caf_fft` cost); Fantasia smoke used ms50. Full 30 min/subject without cap is supported via config `max_segments_per_subject: null`.
+- Default: all blind 2 s windows inside first `max_minutes=30` per subject (`max_segments_per_subject: null`).
+- SCF build: parallel `scf_workers` + disk cache under `outputs/cache/`.
+- Smoke only: CLI `--max-segments N`.
 
 ## Hyperparameters guessed
 
@@ -48,6 +52,5 @@ Every row should also appear in `FIDELITY_AUDIT.md` (Pass A/B) or be marked reso
 ## Not implemented (out of scope unless requested)
 
 - Exact timing microbenchmark (~54 ms)
-- Exact Combined-488 headcount until AFDB matches paper’s 23 signal subjects
 - Literature baseline re-runs (Zhang HeartID, etc.)
 - CEBSDB basal/post phases (we prefer music-phase `mNNN` per Table 4 duration)

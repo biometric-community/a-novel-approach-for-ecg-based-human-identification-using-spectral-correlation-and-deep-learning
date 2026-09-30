@@ -25,10 +25,11 @@ def cmc_curve(
     n, c = probs.shape
     max_rank = int(min(max_rank, c))
     order = np.argsort(-probs, axis=1)
-    hits = np.zeros(max_rank, dtype=np.float64)
-    for r in range(max_rank):
-        top = order[:, : r + 1]
-        hits[r] = np.mean([y_true[i] in top[i] for i in range(n)])
+    # Vectorized: true class rank via argsort position
+    # ranks[i] = position of y_true[i] in descending score order
+    # Equivalent: (order == y_true[:,None]).argmax(axis=1)
+    true_rank = (order == y_true[:, None]).argmax(axis=1)
+    hits = np.array([(true_rank <= r).mean() for r in range(max_rank)], dtype=np.float64)
     return hits
 
 
@@ -36,6 +37,7 @@ def far_frr_from_scores(
     y_true: np.ndarray,
     probs: np.ndarray,
     threshold: float | None = None,
+    n_thresholds: int = 513,
 ) -> tuple[float, float]:
     """FAR / FRR from softmax posteriors (Sec. 4.5; operating point D2).
 
@@ -43,8 +45,8 @@ def far_frr_from_scores(
       - Genuine score = P(true class)
       - Impostor scores = P(other classes)
 
-    If ``threshold`` is None, use the equal-error operating point (EER-like)
-    on pooled genuine/impostor scores; else apply the given threshold.
+    If ``threshold`` is None, use an EER-like point on a quantile grid of
+    pooled scores (avoids O(#unique × #impostors) blow-up on Combined-488).
     """
     y_true = np.asarray(y_true, dtype=np.int64)
     probs = np.asarray(probs, dtype=np.float64)
@@ -53,23 +55,28 @@ def far_frr_from_scores(
         return 0.0, 0.0
 
     genuine = probs[np.arange(n), y_true]
-    impostor_list = []
-    for i in range(n):
-        mask = np.ones(c, dtype=bool)
-        mask[y_true[i]] = False
-        impostor_list.append(probs[i, mask])
-    impostor = np.concatenate(impostor_list) if impostor_list else np.array([], dtype=np.float64)
+    # Vectorized impostors: flatten all class scores then drop genuines
+    if c == 1:
+        impostor = np.array([], dtype=np.float64)
+    else:
+        flat = probs.reshape(-1)
+        # indices of genuine entries in row-major flatten
+        gen_idx = y_true + np.arange(n) * c
+        mask = np.ones(flat.size, dtype=bool)
+        mask[gen_idx] = False
+        impostor = flat[mask]
 
     if threshold is None:
-        # Sweep for approximate EER
-        scores = np.concatenate([genuine, impostor]) if impostor.size else genuine
-        thr_candidates = np.unique(scores)
-        if thr_candidates.size == 0:
+        if genuine.size == 0:
             return 0.0, 0.0
+        # Quantile grid (+ endpoints) instead of every unique float
+        pool = genuine if impostor.size == 0 else np.concatenate([genuine, impostor])
+        qs = np.linspace(0.0, 1.0, int(max(n_thresholds, 3)))
+        thr_candidates = np.unique(np.quantile(pool, qs))
         best_gap = 1e9
         best_far, best_frr = 0.0, 0.0
         for t in thr_candidates:
-            frr = float(np.mean(genuine < t)) if genuine.size else 0.0
+            frr = float(np.mean(genuine < t))
             far = float(np.mean(impostor >= t)) if impostor.size else 0.0
             gap = abs(far - frr)
             if gap < best_gap:

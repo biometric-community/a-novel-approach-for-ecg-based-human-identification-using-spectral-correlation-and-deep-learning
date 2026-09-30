@@ -299,14 +299,19 @@ def build_scf_arrays(
     cfg: dict,
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Segment → SCF → stack. Returns images (N,1,H,W), labels, class_names."""
+    import hashlib
+    import json
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     data_cfg = cfg.get("data", {})
     seg_sec = float(data_cfg.get("segment_sec", 2.0))
     img_size = int(cfg.get("model", {}).get("image_size", 128))
     max_seg = data_cfg.get("max_segments_per_subject")
     normalize = bool(cfg.get("scf", {}).get("normalize_image", True))
     scf_method = str(cfg.get("scf", {}).get("method", "caf_fft"))
+    n_workers = int(data_cfg.get("scf_workers", 8))
+    use_cache = bool(data_cfg.get("scf_cache", True))
 
-    # Group by subject_id (PTB / MITDB merges already applied upstream)
     by_subj: dict[str, list[np.ndarray]] = {}
     for rec in subjects:
         segs = blind_segments(rec.signal, rec.fs, seg_sec)
@@ -319,21 +324,69 @@ def build_scf_arrays(
     class_names = sorted(by_subj.keys())
     name_to_idx = {n: i for i, n in enumerate(class_names)}
 
-    images: list[np.ndarray] = []
-    labels: list[int] = []
+    cache_path = None
+    if use_cache:
+        cache_dir = project_root() / cfg.get("paths", {}).get("cache_dir", "outputs/cache")
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        meta = {
+            "database": data_cfg.get("database"),
+            "n_subjects": len(class_names),
+            "seg_sec": seg_sec,
+            "max_seg": max_seg,
+            "img_size": img_size,
+            "normalize": normalize,
+            "method": scf_method,
+            "max_minutes": data_cfg.get("max_minutes"),
+            "names": class_names,
+            "counts": [len(by_subj[n]) for n in class_names],
+        }
+        key = hashlib.sha1(json.dumps(meta, sort_keys=True).encode()).hexdigest()[:16]
+        cache_path = cache_dir / f"scf_{data_cfg.get('database', 'db')}_{key}.npz"
+        if cache_path.exists():
+            z = np.load(cache_path)
+            print(f"SCF cache hit: {cache_path}  X={z['X'].shape}", flush=True)
+            return z["X"], z["y"], list(z["class_names"])
+
+    jobs: list[tuple[str, np.ndarray]] = []
     for name in class_names:
         for seg in by_subj[name]:
-            if not np.isfinite(seg).all():
+            if np.isfinite(seg).all():
+                jobs.append((name, seg))
+
+    n_jobs = len(jobs)
+    print(
+        f"Building SCF images: {n_jobs} segments, workers={n_workers}, method={scf_method}",
+        flush=True,
+    )
+
+    def _one(job: tuple[str, np.ndarray]) -> tuple[str, np.ndarray] | None:
+        name, seg = job
+        img = spectral_correlation_image(
+            seg,
+            out_size=img_size,
+            normalize=normalize,
+            method=scf_method,
+        )
+        if not np.isfinite(img).all():
+            return None
+        return name, img
+
+    images: list[np.ndarray] = []
+    labels: list[int] = []
+    # Threads: numpy FFT releases GIL; avoids ProcessPool pickling hangs on large jobs.
+    workers = max(1, min(n_workers, 16))
+    done = 0
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = [ex.submit(_one, j) for j in jobs]
+        for fut in as_completed(futs):
+            got = fut.result()
+            done += 1
+            if done % 500 == 0 or done == n_jobs:
+                print(f"  SCF {done}/{n_jobs}", flush=True)
+            if got is None:
                 continue
-            img = spectral_correlation_image(
-                seg,
-                out_size=img_size,
-                normalize=normalize,
-                method=scf_method,
-            )
-            if not np.isfinite(img).all():
-                continue
-            images.append(img[None, ...])  # 1,H,W
+            name, img = got
+            images.append(img[None, ...])
             labels.append(name_to_idx[name])
 
     if not images:
@@ -341,4 +394,7 @@ def build_scf_arrays(
 
     X = np.stack(images, axis=0)
     y = np.asarray(labels, dtype=np.int64)
+    if cache_path is not None:
+        np.savez_compressed(cache_path, X=X, y=y, class_names=np.asarray(class_names))
+        print(f"SCF cache write: {cache_path}  X={X.shape}", flush=True)
     return X, y, class_names

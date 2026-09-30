@@ -122,8 +122,16 @@ def main():
         )
 
         epochs = int(train_cfg.get("epochs", 15))
+        grad_clip = train_cfg.get("grad_clip", 1.0)
         for ep in range(epochs):
-            loss = train_one_epoch(model, train_loader, optimizer, criterion, device)
+            loss = train_one_epoch(
+                model,
+                train_loader,
+                optimizer,
+                criterion,
+                device,
+                grad_clip=None if grad_clip is None else float(grad_clip),
+            )
             if (ep + 1) % 5 == 0 or ep == 0:
                 print(f"  epoch {ep + 1}/{epochs}  loss={loss:.4f}")
 

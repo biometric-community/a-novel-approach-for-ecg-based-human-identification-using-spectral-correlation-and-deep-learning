@@ -27,8 +27,10 @@ data:
   segment_sec: 2.0
   max_minutes: 30.0
   allow_synthetic: false
-  # Cap segments per subject for smoke / memory (null = all)
+  # Cap segments per subject for smoke / memory (null = all within max_minutes)
   max_segments_per_subject: null
+  scf_workers: 8
+  scf_cache: true
 
 model:
   name: arch_a  # arch_a | arch_b
@@ -56,6 +58,7 @@ train:
   num_workers: 0
   # Limit folds/validations for quick smoke (null = all)
   max_folds: null
+  grad_clip: 1.0
 
 eval:
   metric: idr
